@@ -5,6 +5,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.Handler;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
@@ -40,6 +41,8 @@ public class StockViewFragment extends Fragment {
     private StockAdapter stocksAdapter;
 
     private StockQuerier stockQuerier;
+
+    private Handler handler = new Handler();
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -90,6 +93,27 @@ public class StockViewFragment extends Fragment {
     public void onStart() {
         super.onStart();
 
+        queryStock();
+    }
+
+    @Override
+    public void onStop() {
+        super.onStop();
+
+        stopQueryStock();
+    }
+
+    private void setupNewData(List<StockItem> stockItems) {
+        this.stockItems.clear();
+        this.stockItems.addAll(stockItems);
+        stocksAdapter.notifyDataSetChanged();
+    }
+
+    private void queryStock() {
+        if (stockQuerier != null) {
+            stockQuerier.cancel(true);
+        }
+
         stockQuerier = new StockQuerier();
 
         String[] requestingSymbolsArray = new String[requestingSymbols.size()];
@@ -98,19 +122,9 @@ public class StockViewFragment extends Fragment {
         stockQuerier.execute(requestingSymbolsArray);
     }
 
-    @Override
-    public void onStop() {
-        super.onStop();
-
-        if (stockQuerier != null) {
-            stockQuerier.cancel(true);
-        }
-    }
-
-    private void setupNewData(List<StockItem> stockItems) {
-        this.stockItems.clear();
-        this.stockItems.addAll(stockItems);
-        stocksAdapter.notifyDataSetChanged();
+    private void stopQueryStock() {
+        stockQuerier.cancel(true);
+        stockQuerier = null;
     }
 
     private class StockQuerier extends AsyncTask<String, Void, List<StockItem>> {
@@ -125,14 +139,32 @@ public class StockViewFragment extends Fragment {
                 List<StockItem> stockItems = retriever.retrieveStockValue(symbols);
                 return stockItems;
             } catch (IOException e) {
-                cancel(true); // TODO
                 return null;
             }
         }
 
         @Override
         protected void onPostExecute(List<StockItem> stockItems) {
-            setupNewData(stockItems);
+            if (stockItems != null) {
+                setupNewData(stockItems);
+            }
+
+            if (!isCancelled()) {
+                scheduleNextQuery();
+            }
+        }
+
+        private void scheduleNextQuery() {
+            handler.postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                    if (isCancelled()) {
+                        return;
+                    } else {
+                        queryStock();
+                    }
+                }
+            }, 5000);
         }
 
     }
