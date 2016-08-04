@@ -15,7 +15,6 @@
         android:id="@+id/stock_value"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_alignParentRight="true"
-        android:layout_toRightOf="@id/stock_symbol"/>
+        android:layout_alignParentRight="true"/>
 
 </RelativeLayout>

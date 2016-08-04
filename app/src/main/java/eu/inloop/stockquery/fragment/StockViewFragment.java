@@ -54,6 +54,13 @@ public class StockViewFragment extends Fragment {
         List<String> extraRequestingSymbols = intent.getStringArrayListExtra(StockViewActivity.EXTRA_REQUESTING_SYMBOLS);
         this.requestingSymbols.clear();
         this.requestingSymbols.addAll(extraRequestingSymbols);
+
+        if (savedInstanceState == null) {
+            for (String symbol : requestingSymbols) {
+                Stock stock = new Stock(symbol);
+                stocks.add(stock);
+            }
+        }
     }
 
     @Nullable
@@ -91,9 +98,17 @@ public class StockViewFragment extends Fragment {
 
     @Override
     public void onStop() {
+        super.onStop();
+
         if (stockQuerier != null) {
             stockQuerier.cancel(true);
         }
+    }
+
+    private void setupNewData(List<Stock> stocks) {
+        this.stocks.clear();
+        this.stocks.addAll(stocks);
+        stocksAdapter.notifyDataSetChanged();
     }
 
     private class StockQuerier extends AsyncTask<String, Void, List<Stock>> {
@@ -114,7 +129,7 @@ public class StockViewFragment extends Fragment {
 
         @Override
         protected void onPostExecute(List<Stock> stocks) {
-            super.onPostExecute(stocks);
+            setupNewData(stocks);
         }
 
     }

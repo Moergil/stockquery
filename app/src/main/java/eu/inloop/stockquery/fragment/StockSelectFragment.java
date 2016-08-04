@@ -78,6 +78,10 @@ public class StockSelectFragment extends Fragment {
         }
 
         symbols.add(symbol);
+
+        symbolAdapter.notifyDataSetChanged();
+
+        stockSymbolInputField.setText("");
     }
 
     @OnClick(R.id.continue_button)
