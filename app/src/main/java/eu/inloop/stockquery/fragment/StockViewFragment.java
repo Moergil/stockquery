@@ -14,6 +14,7 @@ import android.widget.BaseAdapter;
 import android.widget.ListView;
 import android.widget.TextView;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -22,6 +23,7 @@ import butterknife.ButterKnife;
 import eu.inloop.stockquery.activity.StockViewActivity;
 import eu.inloop.stockquery.data.Stock;
 import eu.inloop.stockquery.provider.DummyStockRetriever;
+import eu.inloop.stockquery.provider.NasdaqHttpStockRetriever;
 import eu.inloop.stockquery.provider.StockRetriever;
 import inloop.eu.stockquery.R;
 
@@ -115,13 +117,18 @@ public class StockViewFragment extends Fragment {
 
         @Override
         protected List<Stock> doInBackground(String... params) {
-            StockRetriever retriever = new DummyStockRetriever();
+            StockRetriever retriever = new NasdaqHttpStockRetriever();
             List<Stock> stocks = new ArrayList<>();
 
             for (String symbol : params) {
-                int currentValue = retriever.retrieveStockValue(symbol);
-                Stock stock = new Stock(symbol, currentValue);
-                stocks.add(stock);
+                try {
+                    int currentValue = retriever.retrieveStockValue(symbol);
+                    Stock stock = new Stock(symbol, currentValue);
+                    stocks.add(stock);
+                } catch (IOException e) {
+                    Stock stock = new Stock(symbol);
+                    stocks.add(stock);
+                }
             }
 
             return stocks;

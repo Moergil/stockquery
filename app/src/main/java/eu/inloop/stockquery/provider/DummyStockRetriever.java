@@ -1,9 +1,11 @@
 package eu.inloop.stockquery.provider;
 
+import java.io.IOException;
+
 public class DummyStockRetriever implements StockRetriever {
 
     @Override
-    public int retrieveStockValue(String symbol) {
+    public int retrieveStockValue(String symbol) throws IOException {
         try {
             Thread.sleep(2000);
         } catch (InterruptedException e) {
