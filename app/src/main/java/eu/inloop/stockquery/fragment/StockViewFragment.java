@@ -16,13 +16,13 @@ import android.widget.TextView;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import eu.inloop.stockquery.activity.StockViewActivity;
-import eu.inloop.stockquery.data.Stock;
-import eu.inloop.stockquery.provider.DummyStockRetriever;
+import eu.inloop.stockquery.data.StockItem;
 import eu.inloop.stockquery.provider.NasdaqHttpStockRetriever;
 import eu.inloop.stockquery.provider.StockRetriever;
 import inloop.eu.stockquery.R;
@@ -35,7 +35,7 @@ public class StockViewFragment extends Fragment {
     ListView mStocksListView;
 
     private final List<String> requestingSymbols = new ArrayList<>();
-    private final ArrayList<Stock> stocks = new ArrayList<>();
+    private final ArrayList<StockItem> stockItems = new ArrayList<>();
 
     private StockAdapter stocksAdapter;
 
@@ -46,8 +46,8 @@ public class StockViewFragment extends Fragment {
         super.onCreate(savedInstanceState);
 
         if (savedInstanceState != null) {
-            List<Stock> savedStocks = (List<Stock>) savedInstanceState.getSerializable(STATE_STOCKS);
-            stocks.addAll(savedStocks);
+            List<StockItem> savedStockItems = (List<StockItem>) savedInstanceState.getSerializable(STATE_STOCKS);
+            stockItems.addAll(savedStockItems);
         }
 
         Activity activity = getActivity();
@@ -59,8 +59,8 @@ public class StockViewFragment extends Fragment {
 
         if (savedInstanceState == null) {
             for (String symbol : requestingSymbols) {
-                Stock stock = new Stock(symbol);
-                stocks.add(stock);
+                StockItem stockItem = new StockItem(symbol);
+                stockItems.add(stockItem);
             }
         }
     }
@@ -83,7 +83,7 @@ public class StockViewFragment extends Fragment {
     @Override
     public void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
-        outState.putSerializable(STATE_STOCKS, stocks);
+        outState.putSerializable(STATE_STOCKS, stockItems);
     }
 
     @Override
@@ -107,36 +107,32 @@ public class StockViewFragment extends Fragment {
         }
     }
 
-    private void setupNewData(List<Stock> stocks) {
-        this.stocks.clear();
-        this.stocks.addAll(stocks);
+    private void setupNewData(List<StockItem> stockItems) {
+        this.stockItems.clear();
+        this.stockItems.addAll(stockItems);
         stocksAdapter.notifyDataSetChanged();
     }
 
-    private class StockQuerier extends AsyncTask<String, Void, List<Stock>> {
+    private class StockQuerier extends AsyncTask<String, Void, List<StockItem>> {
 
         @Override
-        protected List<Stock> doInBackground(String... params) {
+        protected List<StockItem> doInBackground(String... params) {
             StockRetriever retriever = new NasdaqHttpStockRetriever();
-            List<Stock> stocks = new ArrayList<>();
 
-            for (String symbol : params) {
-                try {
-                    int currentValue = retriever.retrieveStockValue(symbol);
-                    Stock stock = new Stock(symbol, currentValue);
-                    stocks.add(stock);
-                } catch (IOException e) {
-                    Stock stock = new Stock(symbol);
-                    stocks.add(stock);
-                }
+            List<String> symbols = Arrays.asList(params);
+
+            try {
+                List<StockItem> stockItems = retriever.retrieveStockValue(symbols);
+                return stockItems;
+            } catch (IOException e) {
+                cancel(true); // TODO
+                return null;
             }
-
-            return stocks;
         }
 
         @Override
-        protected void onPostExecute(List<Stock> stocks) {
-            setupNewData(stocks);
+        protected void onPostExecute(List<StockItem> stockItems) {
+            setupNewData(stockItems);
         }
 
     }
@@ -145,12 +141,12 @@ public class StockViewFragment extends Fragment {
 
         @Override
         public int getCount() {
-            return stocks.size();
+            return stockItems.size();
         }
 
         @Override
-        public Stock getItem(int position) {
-            return stocks.get(position);
+        public StockItem getItem(int position) {
+            return stockItems.get(position);
         }
 
         @Override
@@ -173,9 +169,9 @@ public class StockViewFragment extends Fragment {
 
             StockViewHolder viewHolder = (StockViewHolder)convertView.getTag();
 
-            Stock stock = stocks.get(position);
-            viewHolder.stockSymbolTextView.setText(stock.getSymbol());
-            viewHolder.stockValueTextView.setText(stock.getFormattedValue());
+            StockItem stockItem = stockItems.get(position);
+            viewHolder.stockSymbolTextView.setText(stockItem.getSymbol());
+            viewHolder.stockValueTextView.setText(stockItem.getFormattedValue());
 
             return convertView;
         }

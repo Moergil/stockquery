@@ -1,18 +1,19 @@
 package eu.inloop.stockquery.data;
 
 import java.io.Serializable;
+import java.math.BigDecimal;
 
-public class Stock implements Serializable {
+public class StockItem implements Serializable {
 
     private final String symbol;
-    private final Integer value;
+    private final BigDecimal value;
 
-    public Stock(String symbol) {
+    public StockItem(String symbol) {
         this.symbol = symbol;
         this.value = null;
     }
 
-    public Stock(String symbol, int value) {
+    public StockItem(String symbol, BigDecimal value) {
         this.symbol = symbol;
         this.value = value;
     }
@@ -25,9 +26,7 @@ public class Stock implements Serializable {
         if (value == null) {
             return "N/A";
         } else {
-            int decimal = value / 100;
-            int fractional = value % 100;
-            return decimal + "." + fractional;
+            return value.toPlainString();
         }
     }
 
