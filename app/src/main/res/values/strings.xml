@@ -1,3 +1,7 @@
 <resources>
     <string name="app_name">StockQuery</string>
+
+    <string name="stock_symbol">Symbol</string>
+    <string name="add_button_label">Add</string>
+    <string name="continue_button_label">Continue</string>
 </resources>

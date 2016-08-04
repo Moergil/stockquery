@@ -2,6 +2,6 @@ package eu.inloop.stockquery.provider;
 
 public interface StockRetriever {
 
-    int retrieveStockValue(String identifier);
+    int retrieveStockValue(String symbol);
 
 }
